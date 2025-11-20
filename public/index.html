@@ -2,105 +2,162 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOCO Monkey Hunt</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap');
-        
-        * { margin:0; padding:0; box-sizing:border-box; }
-        
-        body {
-            font-family:'Inter',sans-serif;
-            background:linear-gradient(135deg,#667eea,#764ba2);
-            min-height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            overflow:hidden;
-        }
-        
-        .app { width:100vw; height:100vh; }
-        
-        .screen {
-            display:none;
-            background:#fff;
-            width:100%;
-            height:100vh;
-            padding:20px;
-            overflow-y:auto;
-        }
-        
-        .screen.active { display:flex; flex-direction:column; }
-        
-        #start { justify-content:center; }
-        
-        .logo-box {
-            width:100px;
-            height:100px;
-            margin:0 auto 24px;
-            background:#f1f5f9;
-            border-radius:24px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            box-shadow:0 8px 24px rgba(102,126,234,0.3);
-        }
-        
-        .logo { width:80px; height:80px; object-fit:contain; }
-        
-        h1 {
-            font-size:2.2rem;
-            font-weight:900;
-            text-align:center;
-            background:linear-gradient(135deg,#667eea,#764ba2);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom:8px;
-        }
-        
-        .tagline { text-align:center; color:#64748b; font-size:0.95rem; font-weight:600; margin-bottom:24px; }
-        
-        .cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
-        
-        .card {
-            background:linear-gradient(135deg,#f8fafc,#f1f5f9);
-            border-radius:18px;
-            padding:24px 16px;
-            text-align:center;
-            border:2px solid rgba(102,126,234,0.1);
-        }
-        
-        .icon { font-size:2rem; margin-bottom:12px; }
-        .value { font-size:2.5rem; font-weight:900; color:#667eea; line-height:1; }
-        .label { font-size:0.7rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.8px; margin-top:8px; }
-        
-            .player {
-                background:linear-gradient(135deg,#667eea,#764ba2);
-                border-radius:16px;
-                padding:16px;
-                display:flex;
-                align-items:center;
-            }
-        </style>
-        <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active">
+            <div class="game-header-start">
+                <div class="logo-circle">
+                    <img src="images/logo.png" alt="LOCO">
+                </div>
+                <h1 class="game-title">MONKEY HUNT</h1>
+                <p class="game-subtitle">Find the special LOCO monkey & win rewards!</p>
             </div>
-            <div class="message">
-                💰 Tokens will be sent to:
-                <div class="wallet-display" id="winWallet"></div>
+            
+            <div class="info-cards">
+                <div class="info-card prize-card">
+                    <div class="card-icon">🎁</div>
+                    <div class="card-content">
+                        <div class="card-value" id="prizeAmount">100</div>
+                        <div class="card-label">LOCO Tokens</div>
+                    </div>
+                </div>
+                
+                <div class="info-card time-card">
+                    <div class="card-icon">⏱️</div>
+                    <div class="card-content">
+                        <div class="card-value">60</div>
+                        <div class="card-label">Seconds</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card">
+                <div class="player-avatar">👤</div>
+                <div class="player-name" id="playerName">Loading...</div>
+            </div>
+            
+            <button id="startBtn" class="play-button">
+                <span class="button-icon">🎮</span>
+                <span class="button-text">START PLAYING</span>
+                <div class="button-glow"></div>
+            </button>
+            
+            <div class="warning-notice">
+                <span class="warning-icon">⚠️</span>
+                <span>One attempt only!</span>
+            </div>
+            
+            <div id="alreadyPlayed" class="already-played-card" style="display: none;">
+                <div class="locked-icon">🔒</div>
+                <h3>Already Played!</h3>
+                <p>You've already taken your shot at finding the monkey</p>
+                <p class="small-text">Use <strong>/winners</strong> to see the leaderboard</p>
             </div>
         </div>
 
-        <div id="lose" class="screen">
-            <div class="badge fail">✕</div>
-            <h2>TIME'S UP</h2>
-            <p>The monkey escaped!</p>
-            <div class="metrics single">
-                <div class="metric"><div>🎯</div><div id="loseClicks">0</div><div>CLICKS</div></div>
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="game-stats-bar">
+                <div class="stat-item">
+                    <div class="stat-icon timer-icon">⏱️</div>
+                    <div class="stat-value" id="timer">60</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon clicks-icon">🎯</div>
+                    <div class="stat-value" id="attempts">0</div>
+                </div>
             </div>
-            <div class="message fail">Better luck next time! 🍀</div>
+            
+            <div id="gameContainer" class="game-arena"></div>
+            
+            <div class="game-hint">
+                <div class="hint-icon">💡</div>
+                <div class="hint-text">
+                    <strong>Click on the special monkey!</strong>
+                    <span>Look carefully - it's hidden among many similar ones</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="winScreen" class="screen">
+            <div class="result-card win-card">
+                <div class="result-icon win-icon">
+                    <div class="icon-circle">🏆</div>
+                </div>
+                
+                <h2 class="result-title">VICTORY!</h2>
+                <p class="result-subtitle">You found the special monkey!</p>
+                
+                <div class="prize-box">
+                    <div class="prize-sparkle">✨</div>
+                    <div class="prize-amount-display">
+                        <span id="winPrize" class="prize-value">100</span>
+                        <span class="prize-token">LOCO</span>
+                    </div>
+                    <div class="prize-sparkle">✨</div>
+                </div>
+                
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-icon">⚡</div>
+                        <div class="result-stat-content">
+                            <div class="result-stat-value" id="winTime">0</div>
+                            <div class="result-stat-label">Seconds</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-stat">
+                        <div class="result-stat-icon">🎯</div>
+                        <div class="result-stat-content">
+                            <div class="result-stat-value" id="winAttempts">0</div>
+                            <div class="result-stat-label">Clicks</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="success-message">
+                    <span class="message-icon">💰</span>
+                    <span>Tokens will be sent to your wallet soon!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lose Screen -->
+        <div id="loseScreen" class="screen">
+            <div class="result-card lose-card">
+                <div class="result-icon lose-icon">
+                    <div class="icon-circle">⏰</div>
+                </div>
+                
+                <h2 class="result-title lose-title">TIME'S UP!</h2>
+                <p class="result-subtitle">The monkey was too well hidden</p>
+                
+                <div class="result-stats single-stat">
+                    <div class="result-stat">
+                        <div class="result-stat-icon">🎯</div>
+                        <div class="result-stat-content">
+                            <div class="result-stat-value" id="loseAttempts">0</div>
+                            <div class="result-stat-label">Clicks</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fail-message">
+                    <span class="message-icon">🍀</span>
+                    <div>
+                        <strong>Better luck next time!</strong>
+                        <small>Unfortunately, you only get one attempt</small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
