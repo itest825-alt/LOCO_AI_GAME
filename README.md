@@ -64,3 +64,4 @@
  Once you push, paste the repo URL here and I'll verify and add a short `README`/badges or create a release note if you like.
 
  Good luck — when ready, paste the GitHub repo link and I'll help finish any remaining setup (CI, deploy, README improvements).
+# LOCO_AI_GAME
